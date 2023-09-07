@@ -1,7 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -47,7 +46,6 @@ class DataFromAPI extends StatelessWidget {
       );
       users.add(user);
     }
-    print(users.length);
     return users;
   }
 
@@ -55,23 +53,40 @@ class DataFromAPI extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Center(child: Text('Data API')),
+        title: Center(child: Text('Data API 1')),
       ),
       body: Container(
         child: FutureBuilder(
-            future: getUserData(),
-            builder: (context, snapshot) {
-              if (snapshot.data == null) {
-                return Container(
-                  child: Center(
-                    child: Text('Loading...'),
-                  ),
-                );
-              } else
-                return ListView.builder(
-                  itemCount: snapshot.data.length,
-                  itemBuilder: (context, i) {
-                    return ListTile(
+          future: getUserData(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Text('Error: ${snapshot.error}'),
+              );
+            } else if (!snapshot.hasData || snapshot.data.isEmpty) {
+              return Center(
+                child: Text('No data available'),
+              );
+            } else {
+              return ListView.builder(
+                itemCount: snapshot.data.length,
+                itemBuilder: (context, i) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserDetailsPage(
+                            user: snapshot.data[i],
+                          ),
+                        ),
+                      );
+                    },
+                    child: ListTile(
                       title: Text(snapshot.data[i].name),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,10 +106,49 @@ class DataFromAPI extends StatelessWidget {
                           Text(snapshot.data[i].companybs),
                         ],
                       ),
-                    );
-                  },
-                );
-            }),
+                    ),
+                  );
+                },
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class UserDetailsPage extends StatelessWidget {
+  final User user;
+
+  UserDetailsPage({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(user.name),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${user.name}'),
+            Text('${user.username}'),
+            Text('${user.email}'),
+            Text('${user.addressstreet}'),
+            Text('${user.addresssuite}'),
+            Text('${user.addresscity}'),
+            Text('${user.addresszipcode}'),
+            Text('${user.addressgeolat}'),
+            Text('${user.phone}'),
+            Text('${user.website}'),
+            Text('${user.companyname}'),
+            Text('${user.companycatchPhrase}'),
+            Text('${user.companybs}'),
+          ],
+        ),
       ),
     );
   }
